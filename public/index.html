@@ -5,13 +5,124 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgentsHome - 分布式任务调度系统</title>
     <link rel="stylesheet" href="/css/style.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 </head>
 <body>
-    <div class="container">
-        <h1>AgentsHome</h1>
-        <p>分布式任务调度系统</p>
-        <div id="status">Loading...</div>
+    <div id="app">
+        <nav class="navbar">
+            <div class="nav-brand">🤖 AgentsHome</div>
+            <div class="nav-links">
+                <a href="#" class="active">任务</a>
+                <a href="#">Agent</a>
+                <a href="#">统计</a>
+            </div>
+        </nav>
+        
+        <main class="main-content">
+            <div class="container">
+                <h1>任务管理</h1>
+                
+                <div class="stats-cards">
+                    <div class="stat-card">
+                        <div class="stat-value">{{ tasks.length }}</div>
+                        <div class="stat-label">总任务</div>
+                    </div>
+                    <div class="stat-card pending">
+                        <div class="stat-value">{{ pendingCount }}</div>
+                        <div class="stat-label">待处理</div>
+                    </div>
+                    <div class="stat-card running">
+                        <div class="stat-value">{{ runningCount }}</div>
+                        <div class="stat-label">进行中</div>
+                    </div>
+                    <div class="stat-card completed">
+                        <div class="stat-value">{{ completedCount }}</div>
+                        <div class="stat-label">已完成</div>
+                    </div>
+                </div>
+                
+                <div class="filters">
+                    <button 
+                        v-for="status in ['all', 'pending', 'assigned', 'completed', 'failed']" 
+                        :key="status"
+                        :class="['filter-btn', { active: filter === status }]"
+                        @click="filter = status">
+                        {{ statusLabels[status] }}
+                    </button>
+                </div>
+                
+                <div class="task-list">
+                    <div v-for="task in filteredTasks" :key="task.id" class="task-card">
+                        <div class="task-header">
+                            <span class="task-id">#{{ task.id.slice(0, 8) }}</span>
+                            <span :class="['task-status', task.status]">{{ task.status }}</span>
+                        </div>
+                        <div class="task-title">{{ task.title }}</div>
+                        <div class="task-meta">
+                            <span class="task-complexity">{{ task.complexity }}</span>
+                            <span class="task-agent" v-if="task.assignedAgent">
+                                🤖 {{ task.assignedAgent }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div v-if="filteredTasks.length === 0" class="empty-state">
+                        暂无任务
+                    </div>
+                </div>
+            </div>
+        </main>
     </div>
-    <script src="/js/main.js"></script>
+
+    <script>
+        const { createApp, ref, computed, onMounted } = Vue;
+        
+        createApp({
+            setup() {
+                const tasks = ref([]);
+                const filter = ref('all');
+                const statusLabels = {
+                    'all': '全部',
+                    'pending': '待处理',
+                    'assigned': '进行中',
+                    'completed': '已完成',
+                    'failed': '失败'
+                };
+                
+                const pendingCount = computed(() => tasks.value.filter(t => t.status === 'pending').length);
+                const runningCount = computed(() => tasks.value.filter(t => t.status === 'assigned').length);
+                const completedCount = computed(() => tasks.value.filter(t => t.status === 'completed').length);
+                
+                const filteredTasks = computed(() => {
+                    if (filter.value === 'all') return tasks.value;
+                    return tasks.value.filter(t => t.status === filter.value);
+                });
+                
+                async function fetchTasks() {
+                    try {
+                        const res = await fetch('/api/tasks');
+                        tasks.value = await res.json();
+                    } catch (e) {
+                        console.error('获取任务失败:', e);
+                    }
+                }
+                
+                onMounted(() => {
+                    fetchTasks();
+                    setInterval(fetchTasks, 3000); // 3秒刷新
+                });
+                
+                return { 
+                    tasks, 
+                    filter, 
+                    statusLabels,
+                    pendingCount,
+                    runningCount,
+                    completedCount,
+                    filteredTasks
+                };
+            }
+        }).mount('#app');
+    </script>
 </body>
 </html>
