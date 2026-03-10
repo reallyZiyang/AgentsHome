@@ -1,0 +1,17 @@
+{
+  "project": {
+    "name": "分布式任务调度系统",
+    "repository": "https://github.com/reallyZiyang/AgentsHome.git",
+    "localPath": "project"
+  },
+  "paths": {
+    "config": "config.json",
+    "taskGuide": "TASK_GUIDE.md",
+    "tasksDir": "tasks/scheduler"
+  },
+  "workflow": {
+    "commitMode": "per-task",
+    "maxTaskMinutes": 15,
+    "testBeforeImpl": true
+  }
+}

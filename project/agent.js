@@ -2,6 +2,9 @@
 // 运行在其他机器上，自动拉取任务、执行、回调
 
 const http = require('http');
+const { exec } = require('child_process');
+const fs = require('fs');
+const path = require('path');
 
 // 配置
 const CONFIG = {
@@ -13,7 +16,8 @@ const CONFIG = {
     context: parseInt(process.env.CONTEXT || '32'),
     capabilities: (process.env.CAPABILITIES || 'simple,medium').split(','),
     pollInterval: parseInt(process.env.POLL_INTERVAL || '5000'), // 5秒拉取一次
-    heartbeatInterval: parseInt(process.env.HEARTBEAT_INTERVAL || '10000') // 10秒心跳一次
+    heartbeatInterval: parseInt(process.env.HEARTBEAT_INTERVAL || '10000'), // 10秒心跳一次
+    workspacePath: process.env.WORKSPACE_PATH || path.join(__dirname, '..'), // 工作区路径
 };
 
 console.log('=== Agent 启动配置 ===');
@@ -135,13 +139,66 @@ function simulateExecution(task) {
 // 6. 完成任务回调
 async function completeTask(taskId, status, result) {
     try {
+        // 回调调度中心
         await request('POST', `/api/tasks/${taskId}/status`, {
             status: status,
             result: result,
             agentId: CONFIG.agentId
         });
+        
+        // 更新 Git 任务清单状态
+        await updateGitTaskStatus(taskId, status);
+        
     } catch (e) {
         console.error('❌ 完成任务回调失败:', e.message);
+    }
+}
+
+// 更新 Git 任务清单状态
+async function updateGitTaskStatus(taskId, status) {
+    const taskPath = path.join(CONFIG.workspacePath, 'tasks');
+    
+    // 查找任务 JSON 文件
+    if (!fs.existsSync(taskPath)) {
+        console.log('任务清单目录不存在，跳过 Git 更新');
+        return;
+    }
+    
+    // 递归查找匹配的任务文件
+    const files = fs.readdirSync(taskPath, { recursive: true });
+    const taskFile = files.find(f => f && f.toString().includes(taskId));
+    
+    if (!taskFile) {
+        console.log(`未找到任务 ${taskId} 的 JSON 文件`);
+        return;
+    }
+    
+    const fullPath = path.join(taskPath, taskFile.toString());
+    
+    try {
+        const content = fs.readFileSync(fullPath, 'utf8');
+        const task = JSON.parse(content);
+        
+        // 更新状态
+        task.status = status;
+        
+        // 写回文件
+        fs.writeFileSync(fullPath, JSON.stringify(task, null, 2), 'utf8');
+        
+        // Git 提交
+        const gitPath = CONFIG.workspacePath;
+        const commitMsg = `chore(${taskId}): 更新任务状态为 ${status}`;
+        
+        exec(`git add "${fullPath}" && git commit -m "${commitMsg}"`, { cwd: gitPath }, (err, stdout, stderr) => {
+            if (err) {
+                console.error('Git 提交失败:', stderr);
+            } else {
+                console.log('✅ Git 任务清单已更新:', commitMsg);
+            }
+        });
+        
+    } catch (e) {
+        console.error('更新 Git 任务状态失败:', e.message);
     }
 }
 

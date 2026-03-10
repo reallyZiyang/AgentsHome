@@ -1,0 +1,21 @@
+{
+  "id": "T-001",
+  "title": "示例任务",
+  "description": "这是一个示例任务，展示任务 JSON 的完整结构",
+  "complexity": "simple",
+  "metrics": {
+    "codeLines": 50,
+    "dependencies": 0,
+    "interactions": 1,
+    "states": 1
+  },
+  "priority": 5,
+  "dependencies": [],
+  "acceptanceCriteria": [
+    "功能正常运行",
+    "无控制台错误"
+  ],
+  "status": "pending",
+  "timeEstimate": 10,
+  "type": "feature"
+}

@@ -2,11 +2,12 @@
 
 ## 执行流程
 
-1. **读取任务 JSON** - 从 `tasks/scheduler/` 目录读取当前任务
+1. **读取任务 JSON** - 从 `tasks/` 目录读取当前任务
 2. **理解需求** - 明确验收标准
 3. **最小实现** - 只写必要代码
 4. **浏览器验证** - 打开页面截图确认，触发交互测试
-5. **提交** - 每任务一提交
+5. **Git 提交** - 先项目后任务清单
+6. **更新状态** - JSON 改为 completed
 
 ---
 
@@ -21,12 +22,13 @@
   "metrics": {
     "codeLines": 100,
     "dependencies": 2,
-    "interactions": 3,
-    "states": 2
+    "interactions": 2,
+    "states": 1
   },
+  "priority": 5,
   "dependencies": [],
   "acceptanceCriteria": ["标准1", "标准2"],
-  "status": "pending|in-progress|completed"
+  "status": "pending|in-progress|completed|blocked"
 }
 ```
 
@@ -42,23 +44,18 @@ pending → in-progress → completed
 
 ---
 
-## 阻塞处理
+## Git 提交规范
 
-遇到阻塞时：
-1. 记录阻塞原因
-2. 升级报告
-3. 继续处理其他可执行任务
+```bash
+# 项目代码
+cd {工作区}/project
+git add .
+git commit -m "feat(T-001): 完成xxx"
 
----
-
-## 提交规范
-
-```
-feat(T-001): 完成模块开发
-
-- 实现功能A
-- 实现功能B
-- 验收: 功能正常
+# 任务清单
+cd {工作区}
+git add tasks/
+git commit -m "chore(T-001): 更新任务状态"
 ```
 
 ---
