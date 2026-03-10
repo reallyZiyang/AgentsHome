@@ -57,4 +57,32 @@ router.post('/heartbeat', (req, res) => {
     }
 });
 
+// 获取 Agent 负载
+router.get('/load', (req, res) => {
+    try {
+        const agents = getAgents({ status: 'online' });
+        const { getTasks } = require('../models/task');
+        
+        // 计算每个 Agent 的负载
+        const assignedTasks = getTasks({ status: 'assigned' });
+        
+        const result = agents.map(agent => {
+            const load = assignedTasks.filter(t => t.assignedAgent === agent.id).length;
+            return {
+                id: agent.id,
+                name: agent.name,
+                model: agent.model,
+                currentLoad: load,
+                status: agent.status,
+                capabilities: JSON.parse(agent.capabilities || '[]')
+            };
+        });
+        
+        res.json(result);
+    } catch (error) {
+        console.error('Get load error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 module.exports = router;
