@@ -20,6 +20,9 @@ app.get('/api/health', (req, res) => {
 const agentRoutes = require('./routes/agent');
 app.use('/api/agents', agentRoutes);
 
+const taskRoutes = require('./routes/task');
+app.use('/api/tasks', taskRoutes);
+
 // 启动服务器
 async function startServer() {
     try {
@@ -29,6 +32,10 @@ async function startServer() {
         // 启动心跳检查
         const { startHeartbeatCheck } = require('./services/heartbeat');
         startHeartbeatCheck();
+        
+        // 启动任务调度器
+        const { startScheduler } = require('./services/scheduler');
+        startScheduler(5000);
         
         const PORT = config.server.port || 3000;
         app.listen(PORT, () => {

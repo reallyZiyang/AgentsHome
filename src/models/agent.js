@@ -7,7 +7,7 @@ function registerAgent(agent) {
     db.run(`
         INSERT OR REPLACE INTO agents (id, name, model, params, context, capabilities, status, lastHeartbeat, createdAt)
         VALUES (?, ?, ?, ?, ?, ?, 'online', ?, ?)
-    `, [agent.id, agent.name, agent.model, agent.params, agent.context, JSON.stringify(agent.capabilities || []), now, now]);
+    `, [agent.id, agent.name, agent.model || null, agent.params || null, agent.context || null, JSON.stringify(agent.capabilities || []), now, now]);
     
     saveDatabase();
     return agent.id;
