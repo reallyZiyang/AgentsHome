@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const config = require('../config.json');
-const { initDB } = require('./db');
+const { initDatabase } = require('./models/db');
 
 const app = express();
 
@@ -16,11 +16,19 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: Date.now() });
 });
 
+// API 路由
+const agentRoutes = require('./routes/agent');
+app.use('/api/agents', agentRoutes);
+
 // 启动服务器
 async function startServer() {
     try {
-        await initDB();
+        await initDatabase();
         console.log('数据库初始化完成');
+        
+        // 启动心跳检查
+        const { startHeartbeatCheck } = require('./services/heartbeat');
+        startHeartbeatCheck();
         
         const PORT = config.server.port || 3000;
         app.listen(PORT, () => {
