@@ -12,8 +12,8 @@
         <nav class="navbar">
             <div class="nav-brand">🤖 AgentsHome</div>
             <div class="nav-links">
-                <a href="#" class="active">任务</a>
-                <a href="#">Agent</a>
+                <a href="#" @click.prevent="currentView = 'tasks'" :class="{ active: currentView === 'tasks' }">任务</a>
+                <a href="#" @click.prevent="currentView = 'agents'" :class="{ active: currentView === 'agents' }">Agent</a>
                 <a href="#">统计</a>
             </div>
         </nav>
@@ -41,6 +41,15 @@
                     </div>
                 </div>
                 
+                <div class="toolbar">
+                    <button class="btn-primary" @click="showCreateModal = true">
+                        + 新建任务
+                    </button>
+                    <button class="btn-secondary" @click="fetchTasks">
+                        🔄 刷新
+                    </button>
+                </div>
+                
                 <div class="filters">
                     <button 
                         v-for="status in ['all', 'pending', 'assigned', 'completed', 'failed']" 
@@ -51,7 +60,32 @@
                     </button>
                 </div>
                 
-                <div class="task-list">
+                <!-- Agent 监控面板 -->
+                <div v-if="currentView === 'agents'" class="agent-panel">
+                    <h2>Agent 监控</h2>
+                    <div class="agent-list">
+                        <div v-for="agent in agents" :key="agent.id" class="agent-card">
+                            <div class="agent-header">
+                                <span class="agent-name">{{ agent.name }}</span>
+                                <span :class="['agent-status', agent.status]">{{ agent.status }}</span>
+                            </div>
+                            <div class="agent-info">
+                                <div>模型: {{ agent.model }}</div>
+                                <div>参数: {{ agent.params }}B</div>
+                                <div>上下文: {{ agent.context }}K</div>
+                                <div>能力: {{ JSON.parse(agent.capabilities || '[]').join(', ') }}</div>
+                            </div>
+                            <div class="agent-heartbeat">
+                                最后心跳: {{ new Date(agent.lastHeartbeat * 1000).toLocaleString() }}
+                            </div>
+                        </div>
+                        <div v-if="agents.length === 0" class="empty-state">
+                            暂无Agent在线
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="task-list" v-if="currentView === 'tasks'">
                     <div v-for="task in filteredTasks" :key="task.id" class="task-card">
                         <div class="task-header">
                             <span class="task-id">#{{ task.id.slice(0, 8) }}</span>
@@ -80,7 +114,10 @@
         createApp({
             setup() {
                 const tasks = ref([]);
+                const agents = ref([]);
                 const filter = ref('all');
+                const currentView = ref('tasks');
+                const showCreateModal = ref(false);
                 const statusLabels = {
                     'all': '全部',
                     'pending': '待处理',
@@ -107,14 +144,28 @@
                     }
                 }
                 
+                async function fetchAgents() {
+                    try {
+                        const res = await fetch('/api/agents');
+                        agents.value = await res.json();
+                    } catch (e) {
+                        console.error('获取Agent失败:', e);
+                    }
+                }
+                
                 onMounted(() => {
                     fetchTasks();
-                    setInterval(fetchTasks, 3000); // 3秒刷新
+                    fetchAgents();
+                    setInterval(fetchTasks, 3000);
+                    setInterval(fetchAgents, 3000);
                 });
                 
                 return { 
                     tasks, 
+                    agents,
                     filter, 
+                    currentView,
+                    showCreateModal,
                     statusLabels,
                     pendingCount,
                     runningCount,
