@@ -14,7 +14,7 @@
             <div class="nav-links">
                 <a href="#" @click.prevent="currentView = 'tasks'" :class="{ active: currentView === 'tasks' }">任务</a>
                 <a href="#" @click.prevent="currentView = 'agents'" :class="{ active: currentView === 'agents' }">Agent</a>
-                <a href="#">统计</a>
+                <a href="#" @click.prevent="currentView = 'stats'" :class="{ active: currentView === 'stats' }">统计</a>
             </div>
         </nav>
         
@@ -105,6 +105,49 @@
                         暂无任务
                     </div>
                 </div>
+                
+                <!-- 统计面板 -->
+                <div v-if="currentView === 'stats'" class="stats-panel">
+                    <h2>数据统计</h2>
+                    <div class="stats-detail">
+                        <p>总任务数: {{ tasks.length }}</p>
+                        <p>待处理: {{ pendingCount }}</p>
+                        <p>进行中: {{ runningCount }}</p>
+                        <p>已完成: {{ completedCount }}</p>
+                        <p>在线Agent: {{ agents.filter(a => a.status === 'online').length }}</p>
+                    </div>
+                </div>
+                
+                <!-- 新建任务模态框 -->
+                <div v-if="showCreateModal" class="modal-overlay" @click.self="showCreateModal = false">
+                    <div class="modal-content">
+                        <div class="modal-title">新建任务</div>
+                        <div class="form-group">
+                            <label>任务标题</label>
+                            <input v-model="newTask.title" placeholder="请输入任务标题" />
+                        </div>
+                        <div class="form-group">
+                            <label>描述</label>
+                            <input v-model="newTask.description" placeholder="请输入任务描述" />
+                        </div>
+                        <div class="form-group">
+                            <label>复杂度</label>
+                            <select v-model="newTask.complexity">
+                                <option value="simple">简单</option>
+                                <option value="medium">中等</option>
+                                <option value="complex">复杂</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>优先级</label>
+                            <input v-model.number="newTask.priority" type="number" />
+                        </div>
+                        <div class="modal-actions">
+                            <button class="btn-secondary" @click="showCreateModal = false">取消</button>
+                            <button class="btn-primary" @click="createTask">创建</button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </main>
     </div>
@@ -119,6 +162,12 @@
                 const filter = ref('all');
                 const currentView = ref('tasks');
                 const showCreateModal = ref(false);
+                const newTask = ref({
+                    title: '',
+                    description: '',
+                    complexity: 'simple',
+                    priority: 0
+                });
                 const statusLabels = {
                     'all': '全部',
                     'pending': '待处理',
@@ -162,6 +211,27 @@
                     }
                 }
                 
+                async function createTask() {
+                    if (!newTask.value.title) {
+                        alert('请输入任务标题');
+                        return;
+                    }
+                    try {
+                        const res = await fetch('/api/tasks', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(newTask.value)
+                        });
+                        if (res.ok) {
+                            showCreateModal.value = false;
+                            newTask.value = { title: '', description: '', complexity: 'simple', priority: 0 };
+                            fetchTasks();
+                        }
+                    } catch (e) {
+                        console.error('创建任务失败:', e);
+                    }
+                }
+                
                 onMounted(() => {
                     fetchTasks();
                     fetchAgents();
@@ -175,6 +245,8 @@
                     filter, 
                     currentView,
                     showCreateModal,
+                    newTask,
+                    createTask,
                     statusLabels,
                     pendingCount,
                     runningCount,
