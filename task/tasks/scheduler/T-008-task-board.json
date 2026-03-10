@@ -1,0 +1,21 @@
+{
+  "id": "T-008",
+  "title": "任务看板",
+  "description": "任务列表,筛选,详情查看",
+  "complexity": "medium",
+  "metrics": {
+    "codeLines": 120,
+    "dependencies": 1,
+    "interactions": 3,
+    "states": 2
+  },
+  "dependencies": ["T-007"],
+  "acceptanceCriteria": [
+    "任务列表正常显示",
+    "状态筛选功能正常",
+    "任务详情可查看"
+  ],
+  "status": "completed",
+  "timeEstimate": 15,
+  "type": "feature"
+}

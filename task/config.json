@@ -1,0 +1,30 @@
+{
+  "project": {
+    "name": "分布式任务调度系统",
+    "repository": "https://github.com/reallyZiyang/AgentsHome.git",
+    "localPath": "E:\\AIWorkspace\\AgentsHome",
+    "description": "多Agent分布式任务调度Dashboard"
+  },
+  "paths": {
+    "config": "config.json",
+    "taskGuide": "TASK_GUIDE.md",
+    "taskTemplates": "task-templates.md",
+    "tasksDir": "tasks/scheduler"
+  },
+  "workflow": {
+    "commitMode": "per-task",
+    "maxTaskMinutes": 15,
+    "testBeforeImpl": true
+  },
+  "agents": [
+    {
+      "id": "agent-local",
+      "name": "本地调度器",
+      "model": "minimax/MiniMax-M2.5",
+      "params": 2,
+      "context": 128,
+      "role": "scheduler",
+      "capabilities": ["schedule", "dashboard", "monitor"]
+    }
+  ]
+}

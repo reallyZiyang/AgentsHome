@@ -1,0 +1,22 @@
+{
+  "id": "T-004",
+  "title": "Agent注册与心跳",
+  "description": "Agent注册API, 心跳机制, 状态管理",
+  "complexity": "medium",
+  "metrics": {
+    "codeLines": 120,
+    "dependencies": 1,
+    "interactions": 2,
+    "states": 3
+  },
+  "dependencies": ["T-003"],
+  "acceptanceCriteria": [
+    "Agent可注册到调度中心",
+    "心跳机制正常工作",
+    "Agent状态正确更新",
+    "超时Agent自动离线"
+  ],
+  "status": "completed",
+  "timeEstimate": 15,
+  "type": "feature"
+}
