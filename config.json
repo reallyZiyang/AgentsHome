@@ -1,0 +1,13 @@
+{
+  "server": {
+    "port": 3000
+  },
+  "database": {
+    "path": "./data/scheduler.db"
+  },
+  "scheduler": {
+    "interval": 3000,
+    "maxRetries": 3,
+    "timeout": 300000
+  }
+}
