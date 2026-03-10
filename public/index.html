@@ -74,7 +74,7 @@
                                 <div>模型: {{ agent.model }}</div>
                                 <div>参数: {{ agent.params }}B</div>
                                 <div>上下文: {{ agent.context }}K</div>
-                                <div>能力: {{ (function(){try{return JSON.parse(agent.capabilities||'[]').join(', ')}catch(e){return ''}})() }}</div>
+                                <div>能力: {{ parseCaps(agent.capabilities) }}</div>
                             </div>
                             <div class="agent-heartbeat">
                                 最后心跳: {{ new Date(agent.lastHeartbeat * 1000).toLocaleString() }}
@@ -154,6 +154,14 @@
                     }
                 }
                 
+                function parseCaps(caps) {
+                    try {
+                        return JSON.parse(caps || '[]').join(', ');
+                    } catch (e) {
+                        return '';
+                    }
+                }
+                
                 onMounted(() => {
                     fetchTasks();
                     fetchAgents();
@@ -173,7 +181,8 @@
                     completedCount,
                     filteredTasks,
                     fetchTasks,
-                    fetchAgents
+                    fetchAgents,
+                    parseCaps
                 };
             }
         }).mount('#app');
