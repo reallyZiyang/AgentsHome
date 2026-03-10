@@ -20,7 +20,8 @@
         
         <main class="main-content">
             <div class="container">
-                <h1>任务管理</h1>
+                <h1 v-if="currentView === 'tasks'">任务管理</h1>
+                <h1 v-else-if="currentView === 'agents'">Agent 监控</h1>
                 
                 <div class="stats-cards">
                     <div class="stat-card">
@@ -73,7 +74,7 @@
                                 <div>模型: {{ agent.model }}</div>
                                 <div>参数: {{ agent.params }}B</div>
                                 <div>上下文: {{ agent.context }}K</div>
-                                <div>能力: {{ JSON.parse(agent.capabilities || '[]').join(', ') }}</div>
+                                <div>能力: {{ (function(){try{return JSON.parse(agent.capabilities||'[]').join(', ')}catch(e){return ''}})() }}</div>
                             </div>
                             <div class="agent-heartbeat">
                                 最后心跳: {{ new Date(agent.lastHeartbeat * 1000).toLocaleString() }}
@@ -170,7 +171,9 @@
                     pendingCount,
                     runningCount,
                     completedCount,
-                    filteredTasks
+                    filteredTasks,
+                    fetchTasks,
+                    fetchAgents
                 };
             }
         }).mount('#app');
